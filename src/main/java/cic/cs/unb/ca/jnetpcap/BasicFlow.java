@@ -4,6 +4,10 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import cic.cs.unb.ca.jnetpcap.model.BasicFeature;
+import cic.cs.unb.ca.jnetpcap.model.ExtractFeature;
+import cic.cs.unb.ca.jnetpcap.model.feature.*;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.jnetpcap.packet.format.FormatUtils;
 
@@ -1065,7 +1069,26 @@ public class BasicFlow {
 		}*/
         return "NeedManualLabel";
     }
-	
+
+	public BasicFeature dumpFlowFeatures() {
+		BasicFeature bf = new BasicFeature();
+		ExtractFeature ef = dumpExtractFeature();
+
+		bf.setFlow_id(this.flowId);
+		bf.setSrc_ip(FormatUtils.ip(this.src));
+		bf.setSrc_port(this.srcPort);
+		bf.setDst_ip(FormatUtils.ip(this.dst));
+		bf.setProtocol(this.protocol);
+
+		double timestamp = this.flowStartTime / 1000L;
+		bf.setTimestamp(String.format("%.6f", timestamp));
+		bf.setLabel("NeedManualLabel");
+
+		bf.setExtractFeature(ef);
+
+		return bf;
+	}
+
     public String dumpFlowBasedFeaturesEx() {
     	StringBuilder dump = new StringBuilder();
     	
@@ -1238,6 +1261,74 @@ public class BasicFlow {
     	
     	return dump.toString();
     }
+
+	private ExtractFeature dumpExtractFeature() {
+		ExtractFeature ef = new ExtractFeature();
+
+		ef.setFlow_duration(this.flowLastSeen - this.flowStartTime);
+		ef.setTotalPacketFeature(new TotalPacketFeature(getTotalFwdPackets(),
+				getTotalLengthofFwdPackets(), getTotalBackwardPackets(), getTotalLengthofBwdPackets()));
+
+		ef.setFwd_packet_length(new StatisticsPacket(getFwdPacketLengthMax(),
+				getFwdPacketLengthMin(), getFwdPacketLengthMean(), getFwdPacketLengthStd()));
+
+		ef.setBwd_packet_length(new StatisticsPacket(getBwdPacketLengthMax(),
+				getBwdPacketLengthMin(), getBwdPacketLengthMean(), getBwdPacketLengthStd()));
+
+		ef.setFlow_bytes_per_second(getFlowBytesPerSec());
+		ef.setFlow_pkts_per_second(getFlowPacketsPerSec());
+
+		ef.setFlow_IAT(new StatisticsPacket((double) this.flowIAT.getMax(),
+				(double) this.flowIAT.getMin(), (double) this.flowIAT.getMean(),
+				(double) this.flowIAT.getStandardDeviation()));
+
+		ef.setFwd_IAT(new StatisticsPacket(getFwdIATMax(), getFwdIATMin(), getFwdIATMean(), getFwdIATStd()));
+		ef.setFwd_IAT_total(getFwdIATTotal());
+
+		ef.setBwd_IAT(new StatisticsPacket(getBwdIATMax(), getBwdIATMin(), getBwdIATMean(), getBwdIATStd()));
+		ef.setBwd_IAT_total(getBwdIATTotal());
+
+		ef.setFwd_PSH_flags(this.fPSH_cnt);
+		ef.setBwd_PSH_flags(this.bPSH_cnt);
+		ef.setFwd_URG_flags(this.fURG_cnt);
+		ef.setBwd_URG_flags(this.bURG_cnt);
+		ef.setFwd_header_length(fHeaderBytes);
+		ef.setBwd_header_length(bHeaderBytes);
+		ef.setFwd_packets_per_second(getfPktsPerSecond());
+		ef.setBwd_packets_per_second(getbPktsPerSecond());
+
+		ef.setPacket_lenght(new StatisticsPacket(getMaxPacketLength(),
+				getMinPacketLength(), getPacketLengthMean(), getPacketLengthStd()));
+		ef.setPacket_length_variance(getPacketLengthVariance());
+
+		ef.setFlagCount(new FlagCountFeature(this.flagCounts.get("FIN").value,
+				this.flagCounts.get("SYN").value, this.flagCounts.get("RST").value,
+				this.flagCounts.get("PSH").value, this.flagCounts.get("ACK").value,
+				this.flagCounts.get("URG").value, this.flagCounts.get("CWR").value,
+				this.flagCounts.get("ECE").value));
+
+		ef.setDownload_upload_ratio(getDownUpRatio());
+		ef.setAverage_packet_size(getAvgPacketSize());
+		ef.setFwd_segment_size_avg(fAvgSegmentSize());
+		ef.setBwd_segment_size_avg(bAvgSegmentSize());
+
+		ef.setFwd_bulk(new AvgBulkFeature(fAvgBytesPerBulk(), fAvgPacketsPerBulk(), fAvgBulkRate()));
+		ef.setBwd_bulk(new AvgBulkFeature(bAvgBytesPerBulk(), bAvgPacketsPerBulk(), bAvgBulkRate()));
+
+		ef.setFwd_subflow(new SubFlowFeature(getSflow_fpackets(), getSflow_fbytes()));
+		ef.setBwd_subflow(new SubFlowFeature(getSflow_bpackets(), getSflow_bbytes()));
+
+		ef.setFwd_win_bytes(this.Init_Win_bytes_forward);
+		ef.setBwd_win_bytes(this.Init_Win_bytes_backward);
+		ef.setFwd_act_data_pkts(this.Act_data_pkt_forward);
+		ef.setFwd_seg_size_min(min_seg_size_forward);
+
+		ef.setActivePacket(new StatisticsPacket(getActiveMax(), getActiveMin(), getActiveMean(), getActiveStd()));
+
+		ef.setIdlePacket(new StatisticsPacket(getIdleMax(), getIdleMin(), getIdleMean(), getIdleStd()));
+
+		return ef;
+	}
 }
 class MutableInt {
 	int value = 0; // note that we start at 1 since we're counting
