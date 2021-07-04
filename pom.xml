@@ -54,8 +54,7 @@
 		    <artifactId>commons-lang3</artifactId>
 		    <version>3.6</version>
 		</dependency>
-				
-		
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>
@@ -96,8 +95,6 @@
 			<artifactId>tika-core</artifactId>
 			<version>1.17</version>
 		</dependency>
-
-
 	</dependencies>
 	
 	<build>
@@ -115,7 +112,6 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
-
             <plugin>  
                 <groupId>org.apache.maven.plugins</groupId>  
                 <artifactId>maven-assembly-plugin</artifactId>  
@@ -160,13 +156,8 @@
                     		<goal>single</goal>
                     	</goals>
                     </execution>
-                </executions>  
-            	
-            
+                </executions>
             </plugin>
-			
 		</plugins>
-		
 	</build>
-	
 </project>
