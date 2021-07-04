@@ -16,6 +16,7 @@ public class BasicFeature {
     private String  label;
     
     private ExtractFeature extractFeature;
+    private Metadata metadata;
 
     public BasicFeature() {
     }
@@ -90,5 +91,13 @@ public class BasicFeature {
 
     public void setExtractFeature(ExtractFeature extractFeature) {
         this.extractFeature = extractFeature;
+    }
+
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
+    }
+
+    public Metadata getMetadata() {
+        return this.metadata;
     }
 }

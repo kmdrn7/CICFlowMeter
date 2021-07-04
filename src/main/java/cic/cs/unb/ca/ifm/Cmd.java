@@ -21,16 +21,19 @@ public class Cmd {
     private static final String DividingLine = "-------------------------------------------------------------------------------";
     private static String[] animationChars = new String[]{"|", "/", "-", "\\"};
 
-    private static String kafka_topic = "asdf";
-    private static String kafka_host = "192.168.100.29";
-    private static String kafka_port = "29092";
+    private static String kafka_topic = System.getenv("KAFKA_TOPIC");
+    private static String kafka_host = System.getenv("KAFKA_HOST");
+    private static String kafka_port = System.getenv("KAFKA_PORT");
 
     public static void main(String[] args) {
-        long flowTimeout = 120000000L;
-        long activityTimeout = 5000000L;
-        String pcapPath = "/media/kmdr7/Seagate/DATASETS/IOT-23/CTU-Honeypot-Capture-4-1/2018-10-25-14-06-32-192.168.1.132.pcap";
-        File in = new File(pcapPath);
-        readPcapFile(in.getPath(), flowTimeout, activityTimeout);
+        if (System.getenv("SILENT_MODE") == ""){
+            printSystemEnvironmentVariable();
+        }
+//        long flowTimeout = 120000000L;
+//        long activityTimeout = 5000000L;
+//        String pcapPath = "/media/kmdr7/Seagate/DATASETS/IOT-23/CTU-Honeypot-Capture-4-1/2018-10-25-14-06-32-192.168.1.132.pcap";
+//        File in = new File(pcapPath);
+//        readPcapFile(in.getPath(), flowTimeout, activityTimeout);
     }
 
     private static void readPcapFile(String inputFile, long flowTimeout, long activityTimeout) {
@@ -58,6 +61,15 @@ public class Cmd {
         }
         System.out.println(String.format("Packet stats: Total=%d,Valid=%d,Discarded=%d", nTotal, nValid, nDiscarded));
         System.out.println(DividingLine);
+    }
+
+    public static void printSystemEnvironmentVariable() {
+        System.out.println("Running with configurations :::::::::::::");
+        System.out.println("=========================================");
+        System.out.println("Kafka Host : " + kafka_host);
+        System.out.println("Kafka Port : " + kafka_port);
+        System.out.println("Kafka Topic : " + kafka_topic);
+        System.out.println("=========================================");
     }
 
     static class FlowListener implements FlowGenListener {

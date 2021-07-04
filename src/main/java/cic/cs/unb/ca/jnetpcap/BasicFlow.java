@@ -1,5 +1,6 @@
 package cic.cs.unb.ca.jnetpcap;
 
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,7 +8,7 @@ import java.util.List;
 
 import cic.cs.unb.ca.jnetpcap.model.BasicFeature;
 import cic.cs.unb.ca.jnetpcap.model.ExtractFeature;
-import cic.cs.unb.ca.jnetpcap.model.FullFeature;
+import cic.cs.unb.ca.jnetpcap.model.Metadata;
 import cic.cs.unb.ca.jnetpcap.model.feature.*;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.jnetpcap.packet.format.FormatUtils;
@@ -1088,25 +1089,6 @@ public class BasicFlow {
 		bf.setExtractFeature(ef);
 
 		return bf;
-	}
-
-	public FullFeature dumpFullFlowFeatures() {
-
-		double timestamp = this.flowStartTime / 1000L;
-		BasicFeature bf = new BasicFeature();
-		ExtractFeature ef = dumpExtractFeature();
-
-		bf.setFlow_id(this.flowId);
-		bf.setSrc_ip(FormatUtils.ip(this.src));
-		bf.setSrc_port(this.srcPort);
-		bf.setDst_ip(FormatUtils.ip(this.dst));
-		bf.setProtocol(this.protocol);
-		bf.setTimestamp(String.format("%.6f", timestamp));
-		bf.setLabel("NeedManualLabel");
-		bf.setExtractFeature(ef);
-
-		FullFeature ff = new FullFeature(bf);
-		return ff;
 	}
 
     public String dumpFlowBasedFeaturesEx() {
