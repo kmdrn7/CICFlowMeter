@@ -6,6 +6,9 @@ import cic.cs.unb.ca.jnetpcap.model.Metadata;
 import cic.cs.unb.ca.jnetpcap.worker.FlowGenListener;
 import cic.cs.unb.ca.kafka.KafkaJsonSerializer;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.ListTopicsResult;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -16,7 +19,8 @@ import org.jnetpcap.PcapClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class App {
 
@@ -33,12 +37,36 @@ public class App {
 			if (System.getenv("SILENT_MODE").equals("0")){
 				printSystemEnvironmentVariable();
 			}
-		} catch (Exception e) {}
+		} catch (Exception ignored) {}
+
 		long flowTimeout = 120000000L;
 		long activityTimeout = 5000000L;
+		syncKafkaTopic();
 		String pcapPath = args[0];
 		File in = new File(pcapPath);
 		readPcapFile(in.getPath(), flowTimeout, activityTimeout);
+	}
+
+	public static void syncKafkaTopic() {
+		Properties props = new Properties();
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, App.kafka_host + ":" + App.kafka_port);
+		try {
+			AdminClient admin = AdminClient.create(props);
+			ListTopicsResult listTopics = admin.listTopics();
+			Set<String> names = listTopics.names().get();
+			boolean contains = names.contains(kafka_topic);
+			if (!contains) {
+				List<NewTopic> topicList = new ArrayList<>();
+				Map<String, String> configs = new HashMap<>();
+				int partitions = 1;
+				short replication = 1;
+				NewTopic newTopic = new NewTopic(kafka_topic, partitions, replication).configs(configs);
+				topicList.add(newTopic);
+				admin.createTopics(topicList);
+			}
+		} catch (ExecutionException | InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void printSystemEnvironmentVariable() {
@@ -91,6 +119,7 @@ public class App {
 			props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, App.kafka_host + ":" + App.kafka_port);
 			props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
 			props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
 			producer = new KafkaProducer<>(
 				props,
 				new StringSerializer(),
